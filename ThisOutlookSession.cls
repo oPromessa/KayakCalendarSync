@@ -141,7 +141,7 @@ PrintLog "Sync Calendar"
     Set OlmyRestrictItems = OlmyItems
     If OlmyRestrictItems.Count = 0 Then
         Debug.Print "Remove: No Ol appts found!"
-        ' Maybe remove this line for ' First run' situations.
+        ' Maybe remove this line for 'First run' situations.
         Exit Sub
     Else
         OlmyRestrictItems.Sort "[Start]", True
@@ -159,8 +159,8 @@ PrintLog "Sync Calendar"
     Set myNamespace = Application.GetNamespace("MAPI")
     Set myFolder = GetFolderPath("\\Internet Calendars\Kayak Trips Calendar")
     Set myItems = myFolder.Items
-    Set myRestrictItems = myItems.Restrict("[Categories] = 'moved'")
-    ' Set myRestrictItems = myItems
+    ' Set myRestrictItems = myItems.Restrict("[Categories] = 'moved'")
+    Set myRestrictItems = myItems
     If myRestrictItems.Count = 0 Then
         Debug.Print "Remove: No my appts found!"
         ' Exit Sub
@@ -175,7 +175,8 @@ PrintLog "Sync Calendar"
     iFinished = False
     jFinished = False
     
-' Treat cycle wehn any of the indexes eraches 0 and the other one still not finished. Enbtries exist beyond the other one.
+' Treat cycle when any of the indexes reaches 0 and the other one still not finished.
+' Entries exist beyond the other one.
     Do Until (i = 0) And (j = 0)
         Debug.Print "-------------------- Next: " & "Ol=" & i & "(" & iFinished & ")" & vbTab & "my=" & j & "(" & jFinished & ")"
         PrintLog "-------------------- Next: " & "Ol=" & i & "(" & iFinished & ")" & vbTab & "my=" & j & "(" & jFinished & ")"
