@@ -125,7 +125,7 @@ Dim moveCal As AppointmentItem
 Debug.Print "Sync Calendar"
 PrintLog "Sync Calendar"
 
-' Get Restricted List of Outlook Calndar with Categoris = moved
+' Get Restricted List of Outlook Calendar with Categories = moved
     Dim OlmyNamespace As Outlook.NameSpace
     Dim OlmyFolder As Outlook.Folder
     Dim OlmyItems As Outlook.Items
@@ -136,9 +136,12 @@ PrintLog "Sync Calendar"
     Set OlmyNamespace = Application.GetNamespace("MAPI")
     Set OlmyFolder = OlmyNamespace.GetDefaultFolder(olFolderCalendar)
     Set OlmyItems = OlmyFolder.Items
+    ' First run there is no 'moved' categories. Commetn next line.
     Set OlmyRestrictItems = OlmyItems.Restrict("[Categories] = 'moved'")
+    Set OlmyRestrictItems = OlmyItems
     If OlmyRestrictItems.Count = 0 Then
         Debug.Print "Remove: No Ol appts found!"
+        ' Maybe remove this line for ' First run' situations.
         Exit Sub
     Else
         OlmyRestrictItems.Sort "[Start]", True
@@ -156,8 +159,8 @@ PrintLog "Sync Calendar"
     Set myNamespace = Application.GetNamespace("MAPI")
     Set myFolder = GetFolderPath("\\Internet Calendars\Kayak Trips Calendar")
     Set myItems = myFolder.Items
-    ' Set myRestrictItems = myItems.Restrict("[Categories] = 'moved'")
-    Set myRestrictItems = myItems
+    Set myRestrictItems = myItems.Restrict("[Categories] = 'moved'")
+    ' Set myRestrictItems = myItems
     If myRestrictItems.Count = 0 Then
         Debug.Print "Remove: No my appts found!"
         ' Exit Sub
@@ -342,7 +345,8 @@ Public Sub initLog()
     If prompt = vbYes Then
         Set fs = CreateObject("Scripting.FileSystemObject")
         ' Set f = fs.CreateTextFile("C:\Logs\KayakCalendarSync.txt", False)
-        Set f = fs.OpenTextFile("C:\Logs\KayakCalendarSync.txt", ForAppending, True)
+        ' Set f = fs.OpenTextFile("C:\Logs\KayakCalendarSync.txt", ForAppending, True)
+        Set f = fs.OpenTextFile(CStr(Environ("USERPROFILE") & "\Documents\Logs\KayakCalendarSync.txt"), ForAppending, True)
         f.WriteLine "yadayada"
     End If
     
@@ -369,3 +373,4 @@ PrintLogError:
     MsgBox "The following error occurred: " & Err.Description
 
 End Sub
+
