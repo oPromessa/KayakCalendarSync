@@ -7,10 +7,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-Dim WithEvents curCal As Items
-Attribute curCal.VB_VarHelpID = -1
-Dim WithEvents DeletedItems As Items
-Attribute DeletedItems.VB_VarHelpID = -1
 Dim newCalFolder As Outlook.Folder
 Dim curCalFolder As Outlook.Folder
 Public f As Object
@@ -19,17 +15,12 @@ Private Sub Application_Startup()
    Dim NS As Outlook.NameSpace
    Set NS = Application.GetNamespace("MAPI")
    
-Call initLog
-PrintLog "Start"
-PrintLog "-----"
+    Call initLog
+    PrintLog "Start"
+    PrintLog "-----"
+    
+    MsgBox "APP_STARTUP"
 
-MsgBox "APP_STARTUP"
-' calendar to watch for new items
-'   Set curCal = NS.GetDefaultFolder(olFolderCalendar).Items
-' watch deleted folder
-    Set DeletedItems = Nothing
-'Set DeletedItems = NS.GetDefaultFolder(olFolderDeletedItems).Items
-' calendar moving copy to
     Set newCalFolder = Nothing
 '   Set newCalFolder = GetFolderPath("data-file-name\calendar")
    
@@ -43,76 +34,6 @@ MsgBox "APP_STARTUP"
    
 End Sub
   
- 
- 
-Private Sub curCal_ItemChange(ByVal Item As Object)
-Dim cAppt As AppointmentItem
-Dim objAppointment As AppointmentItem
-Dim strFilter, strEntryID As String
-Dim filteredItems As Outlook.Items
-     
-    
-On Error Resume Next
-   
-' MsgBox "ITEMCHANGE"
-Debug.Print "ITEMCHANGE Event"
-
-' use 2 + the length of the GUID
-' strBody = Right(Item.Body, 38)
-' Debug.Print ("strBody=" & strBody)
-
-    Set cAppt = Application.CreateItem(olAppointmentItem)
-    
-    strEntryID = Item.EntryID
-    Debug.Print ("strEntryID=" & strEntryID)
-
-    Dim myNamespace As Outlook.NameSpace
-    Dim myFolder As Outlook.Folder
-    Dim myItems As Outlook.Items
-    Dim myRestrictItems As Outlook.Items
-    Dim myItem As Outlook.AppointmentItem
-
-    Set myNamespace = Application.GetNamespace("MAPI")
-    Set myFolder = myNamespace.GetDefaultFolder(olFolderCalendar)
-    Set myItems = myFolder.Items
-    Set myRestrictItems = myItems.Restrict("[Categories] = 'moved'")
-    If myRestrictItems.Count = 0 Then
-        Debug.Print "Change: No appts found!"
-    Else
-        For i = myRestrictItems.Count To 1 Step -1
-            Debug.Print ("Restricted items:" & myRestrictItems(i).Subject)
-            If InStr(1, myRestrictItems(i).Subject, strEntryID) Then
-                Set cAppt = myRestrictItems(i)
-                ' CODING: Added for debugging purposes...
-                Debug.Print ("Found APPT via EntryID:" & cAppt.Subject)
-                If myRestrictItems(i).Categories = "moved" Then
-                    Debug.Print (myRestrictItems(i).Subject & "CATEGORIES=" & myRestrictItems(i).Categories)
-                    Debug.Print ("EXITING FOR WITH cAppt found")
-                    Exit For
-                End If
-            End If
-        Next
-        Debug.Print ("FINISHED FOR WITH.")
-    End If
-
-' CODING: Added for debugging purposes...
-Debug.Print (cAppt.Subject)
-
-With cAppt
-    .Subject = "Trip: " & Item.Subject & " [" & Item.EntryID & "]"
-    .Start = Item.Start
-    .Duration = Item.Duration
-    .Location = Item.Location
-    .Body = Item.Body
-    ' CODING: Added Busy Status to adhere to KAYAK's logic
-    .BusyStatus = olOutOfOffice
-    .Categories = "moved"
-    .ReminderSet = False
-    .Save
-End With
-  
-End Sub
-
 Public Sub SyncCalendar()
 Dim i, j As Integer
 Dim iFinished, jFinished As Boolean
@@ -136,11 +57,11 @@ PrintLog "Sync Calendar"
     Set OlmyNamespace = Application.GetNamespace("MAPI")
     Set OlmyFolder = OlmyNamespace.GetDefaultFolder(olFolderCalendar)
     Set OlmyItems = OlmyFolder.Items
-    ' First run there is no 'moved' categories. Commetn next line.
+    ' First run there is no 'moved' categories. Comment next line.
     Set OlmyRestrictItems = OlmyItems.Restrict("[Categories] = 'moved'")
-    Set OlmyRestrictItems = OlmyItems
     If OlmyRestrictItems.Count = 0 Then
-        Debug.Print "Remove: No Ol appts found!"
+        Debug.Print "Sync Calendar: No Ol appts found!"
+        Debug.Print "Sync Calendar: Possibly continuing..."
         ' Maybe remove this line for 'First run' situations.
         Exit Sub
     Else
@@ -178,43 +99,43 @@ PrintLog "Sync Calendar"
 ' Treat cycle when any of the indexes reaches 0 and the other one still not finished.
 ' Entries exist beyond the other one.
     Do Until (i = 0) And (j = 0)
-        Debug.Print "-------------------- Next: " & "Ol=" & i & "(" & iFinished & ")" & vbTab & "my=" & j & "(" & jFinished & ")"
-        PrintLog "-------------------- Next: " & "Ol=" & i & "(" & iFinished & ")" & vbTab & "my=" & j & "(" & jFinished & ")"
+        Debug.Print "-------------------- Next: " & "MainCal=" & i & "(" & iFinished & ")" & vbTab & "SyncCal=" & j & "(" & jFinished & ")"
+        PrintLog "-------------------- Next: " & "MainCal=" & i & "(" & iFinished & ")" & vbTab & "SyncCal=" & j & "(" & jFinished & ")"
         If i > 0 Then
             OlstrEntryID = (Left(Right(OlmyRestrictItems(i).Subject, 49), 48))
             ' OlstrEntryID = (Left(Right(OlmyRestrictItems(i).Subject, 141), 140))
-            Debug.Print ("OlRestricted: [" & OlmyRestrictItems(i).Subject & "] OlstrEntryID: [" & OlstrEntryID & "]")
-            PrintLog ("OlRestricted: [" & OlmyRestrictItems(i).Subject & "] OlstrEntryID: [" & OlstrEntryID & "]")
+            Debug.Print ("MainCal: [" & OlmyRestrictItems(i).Subject & "] EntryID: [" & OlstrEntryID & "]")
+            PrintLog ("MainCal: [" & OlmyRestrictItems(i).Subject & "] EntryID: [" & OlstrEntryID & "]")
         Else
             OlstrEntryID = "999"
             iFinished = True
             ' In this case, in fact, the Original list is larger (j) than the Copied list (i)
-            ' Correct: Copy Calendar list is finished so I can back out! Could eventuall ADD remaining itmes from the Original list. Check below under "Found Later"
+            ' Correct: Copy Calendar list is finished so I can back out! Could eventuall ADD remaining items from the Original list. Check below under "Found Later"
             ' Exit Sub
         End If
         
         If j > 0 Then
             mystrEntryID = myRestrictItems(j).EntryID
-            Debug.Print ("Restricted: [" & myRestrictItems(j).Subject & "] mystrEntryID: [" & mystrEntryID & "]")
-            PrintLog ("Restricted: [" & myRestrictItems(j).Subject & "] mystrEntryID: [" & mystrEntryID & "]")
+            Debug.Print ("SyncCal: [" & myRestrictItems(j).Subject & "] EntryID: [" & mystrEntryID & "]")
+            PrintLog ("SyncCal: [" & myRestrictItems(j).Subject & "] EntryID: [" & mystrEntryID & "]")
         Else
             strEntryID = "888"
             jFinished = True
         End If
         
-        Debug.Print ("OlstrEntryID: [" & OlstrEntryID & "]")
-        Debug.Print ("mystrEntryID: [" & mystrEntryID & "]")
+        Debug.Print ("MainCal.EntryID: [" & OlstrEntryID & "]")
+        Debug.Print ("SyncCal.EntryID: [" & mystrEntryID & "]")
              
         If OlstrEntryID = mystrEntryID Then
-            Debug.Print "-------------------- Both EQUAL"
-            PrintLog "-------------------- Both EQUAL"
+            Debug.Print "-------------------- Both EQUAL. Do nothing. Continuing!"
+            PrintLog "-------------------- Both EQUAL. Do nothing. Continuing!"
             Debug.Print ("Found on both systems: [" & OlmyRestrictItems(i).Subject & "] = [" & myRestrictItems(j).Subject & "]")
             i = i - 1
             j = j - 1
         Else
             If jFinished Then
-                Debug.Print ("Found Items on Destination beyond Original list")
-                Debug.Print ("Remove entry" & OlmyRestrictItems(i).Subject)
+                Debug.Print ("SyncCal list finised. Found Item on MainCal (originally sync'd) beyond SyncCal list. Deleting...")
+                Debug.Print ("Remove/Deleting MainCal entry" & OlmyRestrictItems(i).Subject)
                 Set OlmyItem = OlmyRestrictItems(i)
                 OlmyItem.Delete
                 i = i - 1
@@ -223,18 +144,18 @@ PrintLog "Sync Calendar"
                     If OlmyRestrictItems(i).Start < myRestrictItems(j).Start Then
                         Debug.Print "-------------------- Found Earlier"
                         PrintLog "-------------------- Found Earlier"
-                        Debug.Print ("Remove entry" & OlmyRestrictItems(i).Subject)
+                        Debug.Print ("Found Item on MainCal (originally sync'd) not in SyncCal list. Remove entry: " & OlmyRestrictItems(i).Subject)
                         Set OlmyItem = OlmyRestrictItems(i)
                         OlmyItem.Delete
                         ' Cycle from top to bottom to avoid issues when deleting the entry itself is removed and the list of the array is reduced
                         ' i = i + 1
                         i = i - 1
                     Else
-                        Debug.Print ("-------------------- Found Later... CHECK TO ADDING TO OlCalendar")
-                        PrintLog ("-------------------- Found Later... CHECK TO ADDING TO OlCalendar: " & myRestrictItems(j).Start)
+                        Debug.Print ("-------------------- Found Later... CHECK TO ADDING TO MainCal")
+                        PrintLog ("-------------------- Found Later... CHECK TO ADDING TO MainCal: " & myRestrictItems(j).Start)
                         ' Could eventually ADD this item into Ol Calendar...
                         If myRestrictItems(j).BusyStatus = olTentative Or myRestrictItems(j).BusyStatus = olBusy Then
-                            Debug.Print ("Found Later... ADDING TO OlCalendar")
+                            Debug.Print ("Found Later... ADDING TO MainCal")
                             Set cAppt = Application.CreateItem(olAppointmentItem)
                             With cAppt
                                 .Subject = "Trip: " & myRestrictItems(j).Subject & " [" & myRestrictItems(j).EntryID & "]"
@@ -260,9 +181,9 @@ PrintLog "Sync Calendar"
                         j = j - 1
                     End If
                 Else
-                    ' Repeat code form above...
-                    Debug.Print ("-------------------- Found Later Beyond List... CHECK TO ADDING TO OlCalendar")
-                    PrintLog ("-------------------- Found Later Beyond List... CHECK TO ADDING TO OlCalendar: " & myRestrictItems(j).Start)
+                    ' Repeat code from above...
+                    Debug.Print ("-------------------- Found Later Beyond List... CHECK TO ADDING TO MainCal")
+                    PrintLog ("-------------------- Found Later Beyond List... CHECK TO ADDING TO MainCal: " & myRestrictItems(j).Start)
                     ' Could eventually ADD this item into Ol Calendar...
                     If myRestrictItems(j).BusyStatus = olTentative Or myRestrictItems(j).BusyStatus = olBusy Then
                         Debug.Print ("Found Later Beyong List... ADDING TO OlCalendar")
@@ -348,7 +269,7 @@ Public Sub initLog()
         ' Set f = fs.CreateTextFile("C:\Logs\KayakCalendarSync.txt", False)
         ' Set f = fs.OpenTextFile("C:\Logs\KayakCalendarSync.txt", ForAppending, True)
         Set f = fs.OpenTextFile(CStr(Environ("USERPROFILE") & "\Documents\Logs\KayakCalendarSync.txt"), ForAppending, True)
-        f.WriteLine "yadayada"
+        f.WriteLine "Start of Log"
     End If
     
 Done:
