@@ -8,7 +8,6 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Dim newCalFolder As Outlook.Folder
-Dim curCalFolder As Outlook.Folder
 Public f As Object
 
 Private Sub Application_Startup()
@@ -18,19 +17,14 @@ Private Sub Application_Startup()
     Call initLog
     PrintLog "Start"
     PrintLog "-----"
-    
-    MsgBox "APP_STARTUP"
 
     Set newCalFolder = Nothing
-'   Set newCalFolder = GetFolderPath("data-file-name\calendar")
-   
-'Set curCalFolder = GetFolderPath("\\YourEmail@YourCompany.com\Calendar\Kayak Trips")
-    Set curCalFolder = GetFolderPath("\\Internet Calendars\Kayak Trips Calendar")
-    Set curCal = curCalFolder.Items
 
     Set newCalFolder = NS.GetDefaultFolder(olFolderCalendar)
 
     Set NS = Nothing
+    
+    MsgBox "APP_STARTUP"
    
 End Sub
   
@@ -81,7 +75,7 @@ PrintLog "Sync Calendar"
     ' Calendar added via Accounts.Internet Calendar option
     Set myFolder = GetFolderPath("\\Internet Calendars\Kayak Trips Calendar")
     ' Calendar added by direct click on URL .ics from Web
-    Set myFolder = GetFolderPath("\\YOUR USERNAME\Calendar\Kayak Trips Calendar")
+    Set myFolder = GetFolderPath("\\YourEmail@YourCompany.com\Calendar\Kayak Trips Calendar")
     Set myItems = myFolder.Items
     ' Set myRestrictItems = myItems.Restrict("[Categories] = 'moved'")
     Set myRestrictItems = myItems
