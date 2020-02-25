@@ -78,7 +78,10 @@ PrintLog "Sync Calendar"
     
 
     Set myNamespace = Application.GetNamespace("MAPI")
+    ' Calendar added via Accounts.Internet Calendar option
     Set myFolder = GetFolderPath("\\Internet Calendars\Kayak Trips Calendar")
+    ' Calendar added by direct click on URL .ics from Web
+    Set myFolder = GetFolderPath("\\YOUR USERNAME\Calendar\Kayak Trips Calendar")
     Set myItems = myFolder.Items
     ' Set myRestrictItems = myItems.Restrict("[Categories] = 'moved'")
     Set myRestrictItems = myItems
@@ -214,6 +217,9 @@ PrintLog "Sync Calendar"
             End If
         End If
     Loop
+
+    Debug.Print "Sync Calendar: Finished"
+    PrintLog "Sync Calendar: Finished"
 
     Exit Sub
    
